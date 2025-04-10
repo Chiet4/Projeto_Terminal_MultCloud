@@ -1,0 +1,11 @@
+*
+!README.md**
+!3_teste_rag-Ollama/
+!3_teste_rag-Ollama/**
+3_teste_rag-Ollama/html-to-pdf.py
+3_teste_rag-Ollama/__pycache__/
+data/
+db/
+venv/
+!requirements**
+!.gitignore**
