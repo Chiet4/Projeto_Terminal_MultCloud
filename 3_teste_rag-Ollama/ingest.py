@@ -3,6 +3,8 @@ import time
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from preprocessamento import extrair_blocos_relevantes
+from langchain_core.documents import Document
 from langchain_chroma import Chroma
 from uuid import uuid4
 from models import Models
@@ -35,18 +37,26 @@ def ingest_file(file_path):
     print(f'Começando ingestão de dados: {file_path}')
     loader = PyPDFLoader(file_path)
     loaded_documents = loader.load()
-    
+
+    documentos_filtrados = []
+    for doc in loaded_documents:
+        blocos = extrair_blocos_relevantes(doc.page_content)
+        for bloco in blocos:
+            novo_doc = Document(page_content=bloco, metadata=doc.metadata)
+            documentos_filtrados.append(novo_doc)
+
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size = 300,
         chunk_overlap = 50,
         separators=["\n\n", "\n", ".", ";", " "],
     )
 
-    documents = text_splitter.split_documents(loaded_documents)
+    documents = text_splitter.split_documents(documentos_filtrados)
+
     if not documents:
-        print(f'Nenhum documento válido foi extraido de {file_path}.')
+        print(f'Nenhum documento válido foi extraído de {file_path}.')
         return False
-    
+
     uuids = [str(uuid4()) for _ in range(len(documents))]
     print(f'Adicionando documentos {len(documents)} ao armazenamento de vetor')
     vector_store.add_documents(documents=documents, ids=uuids)
