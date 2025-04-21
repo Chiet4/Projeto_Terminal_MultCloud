@@ -16,8 +16,8 @@ embeddings = models.embeddings_ollama
 
 # Definindo constantes
 data_folder = "./data"
-#chunk_size = 1000
-#chunk_overlap = 50
+chunk_size = 300
+chunk_overlap = 50
 chunk_interval = 10
 
 # Definindo o armazenamento de vetor Chroma
@@ -46,8 +46,8 @@ def ingest_file(file_path):
             documentos_filtrados.append(novo_doc)
 
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size = 300,
-        chunk_overlap = 50,
+        chunk_size = chunk_size,
+        chunk_overlap = chunk_overlap,
         separators=["\n\n", "\n", ".", ";", " "],
     )
 
