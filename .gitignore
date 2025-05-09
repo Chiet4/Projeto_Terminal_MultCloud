@@ -1,9 +1,8 @@
 *
 !README.md**
-!3_teste_rag-Ollama/
-!3_teste_rag-Ollama/**
-3_teste_rag-Ollama/html-to-pdf.py
-3_teste_rag-Ollama/__pycache__/
+!3_teste_rag-Ollama-refatorado/
+!3_teste_rag-Ollama-refatorado/**
+3_teste_rag-Ollama-refatorado/__pycache__
 data/
 db/
 venv/

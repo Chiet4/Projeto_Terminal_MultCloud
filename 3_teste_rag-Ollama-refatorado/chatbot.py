@@ -4,7 +4,6 @@ from langchain.chains import create_retrieval_chain
 from langchain.chains import ConversationalRetrievalChain
 from langchain_chroma import Chroma
 from langchain.memory import ConversationBufferMemory
-
 from models import Models
 
 # inicializar o modelo
@@ -30,9 +29,10 @@ prompt = ChatPromptTemplate.from_messages(
     [
         ("system", "Você é um assistente especializado em AWS. Responda com precisão baseado APENAS nos documentos fornecidos. Se não souber, diga que não tem a informação."),
         ("human", "{chat_history}"),
-        ("human", "Explique detalhadamente: {input}. Use apenas {context} como fonte.")
+        ("human", "Responda a {question}. Use as informações do {context} para trazer resposta precisas.")
     ]
 )
+
 
 # Chamada retrieval chain
 #retriever = vector_store.as_retriever(kwargs={"k": 10})
@@ -47,8 +47,9 @@ retrieval_chain = ConversationalRetrievalChain.from_llm(
     llm=llm,
     retriever=retriever,
     memory=memory,
-    verbose=True  # opcional: para debugar
+    # verbose=True  # opcional: para debugar
 )
+
 
 # main loop
 def main():
@@ -59,11 +60,20 @@ def main():
 
         try:
             result = retrieval_chain.invoke({"question": query})
+            
             answer = result.get("answer", "Desculpe, não encontrei uma resposta.")
             print("Assistente:", answer, "\n\n")
         except Exception as e:
             print("Erro ao processar a pergunta:", str(e))
 
+
+def get_response(user_query: str) -> str:
+    """
+    Recebe a pergunta do usuário, busca contexto AWS e retorna a resposta do chatbot.
+    """
+
+    result = retrieval_chain.invoke({"question": user_query})
+    return result.get("answer", "Desculpe, não encontrei uma resposta.")
 
 # Run
 if __name__ == "__main__":
