@@ -3,30 +3,26 @@ import time
 from dotenv import load_dotenv
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.documents import Document
 from langchain_chroma import Chroma
 from uuid import uuid4
+from langchain_core.documents import Document  # Importando a classe Document
 from models import Models
 
-# Inicializando o modelo
-models = Models()
-embeddings = models.embeddings_ollama
+# Função para inicializar os modelos
+def initialize_embeddings():
+    models = Models()
+    return models.embeddings_ollama
 
-# Constantes
-data_folder = "./data"
-chunk_size = 300
-chunk_overlap = 50
-chunk_interval = 10
+# Função para inicializar o armazenamento vetorial (Chroma)
+def initialize_vector_store(embeddings):
+    return Chroma(
+        collection_name="documents",
+        embedding_function=embeddings,
+        persist_directory="./db/chroma_langchain_db",
+    )
 
-# Armazenamento em ChromaDB
-vector_store = Chroma(
-    collection_name="documents",
-    embedding_function=embeddings,
-    persist_directory="./db/chroma_langchain_db",
-)
-
-# Ingestão de arquivos .md
-def ingest_file(file_path):
+# Função para processar um arquivo .md
+def ingest_file(file_path, vector_store):
     if not file_path.lower().endswith('.md'):
         print(f'Pulando arquivos que não são Markdown: {file_path}')
         return False
@@ -35,63 +31,53 @@ def ingest_file(file_path):
     loader = TextLoader(file_path, encoding="utf-8")
     loaded_documents = loader.load()
 
-    documentos_filtrados = []
+    # Processar cada documento
+    documents = []
     for doc in loaded_documents:
-        texto = doc.page_content
-        metadata = doc.metadata.copy()
+        text = doc.page_content
+        metadata = extract_metadata(file_path)
+        new_doc = Document(page_content=text, metadata=metadata)  # Corrigido: criação do Document
+        documents.append(new_doc)
 
-        # Extraindo metadados do caminho (ex: awsDocsMark/s3/put-object.md)
-        partes = file_path.replace("\\", "/").split("/")
-        if len(partes) >= 2:
-            metadata["servico"] = partes[-2]
-            metadata["comando"] = partes[-1].replace(".md", "")
+    # Dividir os documentos em chunks
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=50)
+    chunked_documents = text_splitter.split_documents(documents)
 
-        # Criando um único documento com o conteúdo completo do .md
-        novo_doc = Document(page_content=texto, metadata=metadata)
-        documentos_filtrados.append(novo_doc)
-
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap,
-        separators=["\n\n", "\n", ".", ";", " "],
-    )
-
-    documents = text_splitter.split_documents(documentos_filtrados)
-
-    if not documents:
-        print(f'Nenhum documento válido foi extraído de {file_path}.')
-        return False
-
-    uuids = [str(uuid4()) for _ in range(len(documents))]
-    print(f'Adicionando {len(documents)} chunks ao vetor')
-    vector_store.add_documents(documents=documents, ids=uuids)
-
+    # Adicionar documentos ao vetor
+    uuids = [str(uuid4()) for _ in range(len(chunked_documents))]
+    vector_store.add_documents(documents=chunked_documents, ids=uuids)
+    
     print(f'Ingestão finalizada: {file_path}')
     return True
 
-# Loop principal
-def main_loop():
-    while True:
-        mds = [f for f in os.listdir(data_folder)
-               if f.endswith(".md") and not f.startswith("_")]
+# Função para extrair metadados do caminho do arquivo
+def extract_metadata(file_path):
+    partes = file_path.replace("\\", "/").split("/")
+    metadata = {}
+    if len(partes) >= 2:
+        metadata["servico"] = partes[-2]
+        metadata["comando"] = partes[-1].replace(".md", "")
+    return metadata
 
+# Função principal para iniciar o processo de ingestão
+def main_loop():
+    embeddings = initialize_embeddings()
+    vector_store = initialize_vector_store(embeddings)
+    
+    while True:
+        mds = [f for f in os.listdir('./data') if f.endswith(".md") and not f.startswith("_")]
         if not mds:
             print("Nenhum novo arquivo Markdown encontrado. Encerrando.")
             break
 
         for filename in mds:
-            file_path = os.path.join(data_folder, filename)
-            sucesso = ingest_file(file_path)
+            file_path = os.path.join('./data', filename)
+            if ingest_file(file_path, vector_store):
+                new_filename = "_" + filename
+                os.rename(file_path, os.path.join('./data', new_filename))
 
-            new_filename = "_" + filename
-            new_file_path = os.path.join(data_folder, new_filename)
-            os.rename(file_path, new_file_path)
+            time.sleep(10)  # Pausa entre processamentos
 
-            status = "ok" if sucesso else "falhou"
-            print(f"Processamento de {filename} {status}, renomeado para {new_filename}")
-
-        time.sleep(chunk_interval)
-
-
+# Executando o processo
 if __name__ == "__main__":
     main_loop()

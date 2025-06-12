@@ -10,5 +10,5 @@ class Models:
 
         self.model_ollama = ChatOllama(
             model="llama3.2",
-            temperature=0.3
+            temperature=0.5
         )
