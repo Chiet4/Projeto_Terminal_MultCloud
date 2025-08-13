@@ -13,3 +13,4 @@ venv/
 !data/
 !imagens/
 !imagens/**
+!LICENSE
