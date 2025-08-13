@@ -10,7 +10,7 @@ Este projeto contém scripts e ferramentas relacionados ao uso de RAG com Ollama
 
 | Tipo de commit     | Palavra-chave |
 |--------------------|:-------------:|
-| Commit inicial   | `init`        |
+| Commit inicial     | `init`        |
 | Novo recurso       | `feat`        |
 | Correção de código | `fix`         |
 | Refatoração        | `refac`       |
