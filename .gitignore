@@ -14,3 +14,5 @@ venv/
 !imagens/
 !imagens/**
 !LICENSE
+!db/
+!db/**
