@@ -20,7 +20,7 @@ models = Models()
 embedding = models.embeddings_ollama  # Modelo de embeddings para vetorização de texto
 llm = models.model_ollama  # Modelo de linguagem para geração de respostas
 
-# Reranker leve
+
 # Configuração do modelo de reranking (CrossEncoder) para reordenar documentos com base na relevância.
 reranker = CrossEncoder(
     os.getenv("RERANKER_MODEL", "BAAI/bge-reranker-base"),  # Modelo padrão

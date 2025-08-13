@@ -9,3 +9,7 @@ db/
 venv/
 !requirements**
 !.gitignore**
+!data/**
+!data/
+!imagens/
+!imagens/**
