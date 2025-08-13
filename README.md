@@ -209,5 +209,5 @@ Este projeto está licenciado sob a [MIT License](LICENSE).
 
 Se tiver dúvidas ou sugestões, entre em contato:
 
-- **Email**: seuemail@exemplo.com
-- **LinkedIn**: [Seu Perfil](https://linkedin.com/in/seuperfil)
+- **Email**: anchietanalbano@gmail.com
+- **LinkedIn**: [Anchieta Albano](https://www.linkedin.com/in/anchieta-albano/)
